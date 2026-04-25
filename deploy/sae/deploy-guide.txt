@@ -1,0 +1,35 @@
+# Alibaba Cloud SAE Deployment Guide for BizScore
+# ================================================
+# SAE (Serverless App Engine) deploys Docker containers as serverless apps.
+#
+# Prerequisites:
+#   1. Alibaba Cloud account with SAE enabled
+#   2. Container Registry (ACR) namespace created
+#   3. AWS credentials configured for DynamoDB + Bedrock access
+#
+# Steps:
+#
+# 1. Build & Push Backend Image
+#    docker build -t registry.<region>.aliyuncs.com/<namespace>/bizscore-backend:latest ./backend
+#    docker push registry.<region>.aliyuncs.com/<namespace>/bizscore-backend:latest
+#
+# 2. Build & Push Frontend Image
+#    docker build -t registry.<region>.aliyuncs.com/<namespace>/bizscore-frontend:latest ./frontend
+#    docker push registry.<region>.aliyuncs.com/<namespace>/bizscore-frontend:latest
+#
+# 3. Create SAE Application (Backend)
+#    - Image: registry.<region>.aliyuncs.com/<namespace>/bizscore-backend:latest
+#    - Port: 8000
+#    - CPU: 500m, Memory: 1024Mi
+#    - Environment Variables: set all .env values in SAE console
+#    - Health Check: GET /api/health
+#
+# 4. Create SAE Application (Frontend)
+#    - Image: registry.<region>.aliyuncs.com/<namespace>/bizscore-frontend:latest
+#    - Port: 80
+#    - CPU: 250m, Memory: 512Mi
+#    - Update nginx.conf proxy_pass to point to backend SAE internal URL
+#
+# 5. Configure SLB (Server Load Balancer) for public access
+#    - Frontend: port 80/443
+#    - Backend: port 8000 (internal only)
