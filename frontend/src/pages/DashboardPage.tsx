@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Wallet, Send, ArrowDownLeft, TrendingUp, Award } from 'lucide-react';
+import { Send, ArrowDownLeft, TrendingUp, Award } from 'lucide-react';
 import api from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { formatMYR } from '../lib/types';
@@ -66,12 +66,6 @@ export default function DashboardPage() {
             className="flex-1 bg-white/20 rounded-xl py-2.5 text-center text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-white/30 transition-colors"
           >
             <ArrowDownLeft size={16} /> Receive
-          </Link>
-          <Link
-            to="/wallet"
-            className="flex-1 bg-white/20 rounded-xl py-2.5 text-center text-sm font-medium flex items-center justify-center gap-1.5 hover:bg-white/30 transition-colors"
-          >
-            <Wallet size={16} /> Top Up
           </Link>
         </div>
       </div>

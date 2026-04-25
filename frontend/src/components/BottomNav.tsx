@@ -1,10 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Wallet, BarChart3, Award, MessageCircle, LogOut } from 'lucide-react';
+import { Home, BarChart3, Award, MessageCircle, LogOut } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 
 const navItems = [
   { to: '/dashboard', icon: Home, label: 'Home' },
-  { to: '/wallet', icon: Wallet, label: 'Wallet' },
   { to: '/reports', icon: BarChart3, label: 'Reports' },
   { to: '/score', icon: Award, label: 'Score' },
   { to: '/chat', icon: MessageCircle, label: 'Chat' },

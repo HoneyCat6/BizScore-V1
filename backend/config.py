@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings
 
 
@@ -5,7 +7,7 @@ class Settings(BaseSettings):
     # AWS
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
-    aws_session_token: str = ""
+    aws_session_token: Optional[str] = None  # Only needed for temporary STS credentials
     aws_region: str = "us-east-1"
     bedrock_model_id: str = "anthropic.claude-3-haiku-20240307"
 

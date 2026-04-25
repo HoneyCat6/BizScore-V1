@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Send, Package, Settings, Users, Home, Zap, TrendingUp, ShoppingCart, CreditCard, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, Send, Package, Settings, Users, Home, Zap, TrendingUp, ShoppingCart, CreditCard, MoreHorizontal, QrCode, X } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import api from '../lib/api';
 import { OUTFLOW_CATEGORIES, formatMYR } from '../lib/types';
 import { Spinner } from '../components/Spinner';
@@ -18,6 +19,85 @@ export default function SendPaymentPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // QR Scanner state
+  const [scanning, setScanning] = useState(false);
+  const [scannedName, setScannedName] = useState('');
+  const [scanError, setScanError] = useState('');
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear().catch(() => {});
+      scannerRef.current = null;
+    }
+    setScanning(false);
+  };
+
+  const startScanner = () => {
+    setScanError('');
+    setScanning(true);
+  };
+
+  useEffect(() => {
+    if (!scanning) return;
+
+    // Small delay to ensure the DOM element is rendered
+    const timer = setTimeout(() => {
+      const scanner = new Html5QrcodeScanner('qr-reader', {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+      }, false);
+
+      scannerRef.current = scanner;
+
+      scanner.render(
+        (decodedText) => {
+          try {
+            const url = new URL(decodedText);
+            const params = new URLSearchParams(url.search);
+            const phone = params.get('phone') || '';
+            const name = params.get('name') || '';
+            const amt = params.get('amount') || '';
+
+            if (phone) setRecipientPhone(phone);
+            if (amt) setAmount(amt);
+            if (name) setScannedName(name);
+
+            scanner.clear().catch(() => {});
+            scannerRef.current = null;
+            setScanning(false);
+          } catch {
+            setScanError('Invalid QR code format.');
+          }
+        },
+        (errorMessage) => {
+          // Ignore scan-in-progress errors, only show permission issues
+          if (errorMessage.includes('NotAllowedError') || errorMessage.includes('Permission')) {
+            setScanError('Camera permission denied. Please allow camera access and try again.');
+          }
+        }
+      );
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => {});
+        scannerRef.current = null;
+      }
+    };
+  }, [scanning]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => {});
+        scannerRef.current = null;
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -69,6 +149,47 @@ export default function SendPaymentPage() {
       <h1 className="text-xl font-bold text-gray-900 mb-5">Send Payment</h1>
 
       {error && <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl mb-4">{error}</div>}
+
+      {/* QR Scanner Section */}
+      {!scanning ? (
+        <button
+          type="button"
+          onClick={startScanner}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 mb-4 transition-colors"
+        >
+          <QrCode size={20} />
+          Scan QR Code
+        </button>
+      ) : (
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-gray-700">Scanning QR Code...</span>
+            <button
+              type="button"
+              onClick={stopScanner}
+              className="inline-flex items-center gap-1 text-sm text-red-500 font-medium hover:text-red-600"
+            >
+              <X size={16} /> Cancel
+            </button>
+          </div>
+          {scanError && (
+            <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg mb-3">{scanError}</div>
+          )}
+          <div id="qr-reader" className="rounded-xl overflow-hidden" />
+        </div>
+      )}
+
+      {scannedName && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+            <Send size={14} className="text-success" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-800">Paying: {scannedName}</p>
+            <p className="text-xs text-green-600">Scanned from QR code</p>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useCallback, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, QrCode, ArrowDownLeft } from 'lucide-react';
 import api from '../lib/api';
@@ -10,6 +10,7 @@ export default function ReceivePaymentPage() {
   const [mode, setMode] = useState<'qr' | 'manual'>('qr');
   const [qrUrl, setQrUrl] = useState<string | null>(null);
   const [loadingQr, setLoadingQr] = useState(false);
+  const [qrAmount, setQrAmount] = useState('');
 
   // Manual receive
   const [amount, setAmount] = useState('');
@@ -20,16 +21,25 @@ export default function ReceivePaymentPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchQr = async () => {
+  const fetchQr = useCallback(async (amt?: string) => {
     setLoadingQr(true);
     try {
-      const { data } = await api.get('/wallet/qr', { responseType: 'blob' });
+      const params: Record<string, string> = {};
+      if (amt) params.amount = amt;
+      const { data } = await api.get('/wallet/qr', { params, responseType: 'blob' });
+      if (qrUrl) URL.revokeObjectURL(qrUrl);
       setQrUrl(URL.createObjectURL(data));
     } catch {
       setError('Could not generate QR code.');
     } finally {
       setLoadingQr(false);
     }
+  }, [qrUrl]);
+
+  const handleQrAmountChange = (value: string) => {
+    setQrAmount(value);
+    // Debounce-like: fetch immediately on change
+    fetchQr(value || undefined);
   };
 
   const handleManualReceive = async (e: FormEvent) => {
@@ -83,7 +93,7 @@ export default function ReceivePaymentPage() {
       {/* Mode Switcher */}
       <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
         <button
-          onClick={() => { setMode('qr'); if (!qrUrl) fetchQr(); }}
+          onClick={() => { setMode('qr'); if (!qrUrl) fetchQr(qrAmount || undefined); }}
           className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
             mode === 'qr' ? 'bg-white text-primary-500 shadow-sm' : 'text-gray-500'
           }`}
@@ -102,6 +112,28 @@ export default function ReceivePaymentPage() {
 
       {mode === 'qr' ? (
         <div className="text-center">
+          {/* Amount input for QR */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Amount (optional)</label>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={qrAmount}
+              onChange={(e) => handleQrAmountChange(e.target.value)}
+              placeholder="Enter amount (optional)"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-lg font-semibold text-center"
+            />
+          </div>
+
+          {qrAmount && (
+            <div className="mb-3">
+              <span className="inline-block bg-green-50 text-success font-bold text-xl px-4 py-2 rounded-xl">
+                {formatMYR(parseFloat(qrAmount) || 0)}
+              </span>
+            </div>
+          )}
+
           {loadingQr ? (
             <div className="py-16"><Spinner className="mx-auto" /></div>
           ) : qrUrl ? (
@@ -110,7 +142,7 @@ export default function ReceivePaymentPage() {
             </div>
           ) : (
             <button
-              onClick={fetchQr}
+              onClick={() => fetchQr(qrAmount || undefined)}
               className="bg-gray-50 rounded-2xl p-12 w-full flex flex-col items-center gap-3"
             >
               <QrCode size={48} className="text-gray-300" />

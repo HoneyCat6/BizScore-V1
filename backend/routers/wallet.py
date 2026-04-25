@@ -1,6 +1,7 @@
 import io
 import qrcode
-from fastapi import APIRouter, HTTPException, Depends
+import urllib.parse
+from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import StreamingResponse
 
 from routers.auth import get_current_owner_id
@@ -62,13 +63,16 @@ def receive_payment(req: ReceivePaymentRequest, owner_id: str = Depends(get_curr
 
 
 @router.get("/qr")
-def get_qr_code(owner_id: str = Depends(get_current_owner_id)):
+def get_qr_code(owner_id: str = Depends(get_current_owner_id), amount: float = Query(None)):
     """Generate a QR code containing a payment link for this business."""
     owner = WalletService._get_owner_by_id(owner_id)
     if not owner:
         raise HTTPException(status_code=404, detail="Owner not found")
 
-    qr_data = f"bizscore://pay?phone={owner['phone']}&name={owner.get('business_name', '')}"
+    params = {"phone": owner["phone"], "name": owner.get("business_name", "")}
+    if amount is not None:
+        params["amount"] = amount
+    qr_data = "bizscore://pay?" + urllib.parse.urlencode(params)
     img = qrcode.make(qr_data)
     buf = io.BytesIO()
     img.save(buf, format="PNG")

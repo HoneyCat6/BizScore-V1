@@ -1,29 +1,15 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Send, ArrowDownLeft, Plus, Wallet as WalletIcon, ChevronRight } from 'lucide-react';
+import { Send, ArrowDownLeft, Plus, ChevronRight } from 'lucide-react';
 import api from '../lib/api';
-import { formatMYR } from '../lib/types';
-import type { WalletBalance } from '../lib/types';
+
 import { Spinner } from '../components/Spinner';
 
 export default function WalletPage() {
-  const [balance, setBalance] = useState<WalletBalance | null>(null);
-  const [loading, setLoading] = useState(true);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [topUpLoading, setTopUpLoading] = useState(false);
   const [showTopUp, setShowTopUp] = useState(false);
   const [msg, setMsg] = useState('');
-
-  const fetchBalance = async () => {
-    try {
-      const { data } = await api.get('/wallet/balance');
-      setBalance(data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchBalance(); }, []);
 
   const handleTopUp = async (e: FormEvent) => {
     e.preventDefault();
@@ -35,7 +21,6 @@ export default function WalletPage() {
       setMsg('Top up successful!');
       setTopUpAmount('');
       setShowTopUp(false);
-      fetchBalance();
     } catch {
       setMsg('Top up failed.');
     } finally {
@@ -46,20 +31,6 @@ export default function WalletPage() {
   return (
     <div className="px-5 pt-6 pb-4">
       <h1 className="text-xl font-bold text-gray-900 mb-5">My Wallet</h1>
-
-      {/* Balance Card */}
-      <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-6 text-white mb-6">
-        <div className="flex items-center gap-2 mb-2">
-          <WalletIcon size={18} className="text-primary-200" />
-          <span className="text-sm text-primary-200">Available Balance</span>
-        </div>
-        {loading ? (
-          <Spinner className="text-white" />
-        ) : (
-          <p className="text-4xl font-bold">{balance ? formatMYR(balance.balance) : 'RM 0.00'}</p>
-        )}
-        <p className="text-xs text-primary-300 mt-1">{balance?.currency || 'MYR'}</p>
-      </div>
 
       {msg && (
         <div className="bg-green-50 text-success text-sm px-4 py-3 rounded-xl mb-4">{msg}</div>

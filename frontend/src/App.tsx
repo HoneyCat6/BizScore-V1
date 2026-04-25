@@ -6,7 +6,6 @@ import LandingPage from './pages/LandingPage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
-import WalletPage from './pages/WalletPage';
 import SendPaymentPage from './pages/SendPaymentPage';
 import ReceivePaymentPage from './pages/ReceivePaymentPage';
 import TransactionHistoryPage from './pages/TransactionHistoryPage';
@@ -28,7 +27,6 @@ function AppRoutes() {
       {/* Protected routes with bottom nav */}
       <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/wallet" element={<WalletPage />} />
         <Route path="/wallet/send" element={<SendPaymentPage />} />
         <Route path="/wallet/receive" element={<ReceivePaymentPage />} />
         <Route path="/transactions" element={<TransactionHistoryPage />} />
