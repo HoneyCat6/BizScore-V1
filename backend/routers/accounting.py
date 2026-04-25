@@ -17,23 +17,23 @@ def get_summary(
 
 @router.get("/pnl", response_model=PnLReport)
 def get_pnl(
-    period: str = Query("month", regex="^(month|quarter|year)$"),
+    days: int = Query(30, ge=1, le=365),
     owner_id: str = Depends(get_current_owner_id),
 ):
-    return AccountingEngine.get_pnl(owner_id, period)
+    return AccountingEngine.get_pnl(owner_id, days)
 
 
 @router.get("/cashflow", response_model=CashFlowReport)
 def get_cashflow(
-    period: str = Query("month", regex="^(month|quarter)$"),
+    days: int = Query(30, ge=1, le=365),
     owner_id: str = Depends(get_current_owner_id),
 ):
-    return AccountingEngine.get_cashflow(owner_id, period)
+    return AccountingEngine.get_cashflow(owner_id, days)
 
 
 @router.get("/categories", response_model=list[CategoryBreakdown])
 def get_categories(
-    period: str = Query("month"),
+    days: int = Query(30, ge=1, le=365),
     owner_id: str = Depends(get_current_owner_id),
 ):
-    return AccountingEngine.get_categories(owner_id, period)
+    return AccountingEngine.get_categories(owner_id, days)

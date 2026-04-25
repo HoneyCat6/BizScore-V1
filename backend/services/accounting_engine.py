@@ -47,20 +47,12 @@ class AccountingEngine:
         }
 
     @staticmethod
-    def get_pnl(owner_id: str, period: str = "month") -> dict:
+    def get_pnl(owner_id: str, days: int = 30) -> dict:
         now = datetime.now(timezone.utc)
-        if period == "month":
-            start = (now - timedelta(days=30)).isoformat()
-        elif period == "quarter":
-            start = (now - timedelta(days=90)).isoformat()
-        elif period == "year":
-            start = (now - timedelta(days=365)).isoformat()
-        else:
-            start = (now - timedelta(days=30)).isoformat()
-
+        start = (now - timedelta(days=days)).isoformat()
         end = now.isoformat()
         txns = WalletService.get_transactions(
-            owner_id, start_date=start, end_date=end, limit=200
+            owner_id, start_date=start, end_date=end, limit=500
         )
         txns = [t for t in txns if t.get("category") != "topup"]
 
@@ -83,7 +75,7 @@ class AccountingEngine:
         net_profit = gross_profit - total_opex
 
         return {
-            "period": period,
+            "period": f"{days}d",
             "revenue": round(revenue, 2),
             "cost_of_goods": round(cogs, 2),
             "gross_profit": round(gross_profit, 2),
@@ -93,18 +85,12 @@ class AccountingEngine:
         }
 
     @staticmethod
-    def get_cashflow(owner_id: str, period: str = "month") -> dict:
+    def get_cashflow(owner_id: str, days: int = 30) -> dict:
         now = datetime.now(timezone.utc)
-        if period == "month":
-            start = (now - timedelta(days=30)).isoformat()
-        elif period == "quarter":
-            start = (now - timedelta(days=90)).isoformat()
-        else:
-            start = (now - timedelta(days=30)).isoformat()
-
+        start = (now - timedelta(days=days)).isoformat()
         end = now.isoformat()
         txns = WalletService.get_transactions(
-            owner_id, start_date=start, end_date=end, limit=200
+            owner_id, start_date=start, end_date=end, limit=500
         )
         txns = [t for t in txns if t.get("category") != "topup"]
 
@@ -119,7 +105,7 @@ class AccountingEngine:
         )
 
         return {
-            "period": period,
+            "period": f"{days}d",
             "operating_inflow": round(op_in, 2),
             "operating_outflow": round(op_out, 2),
             "capital_outflow": round(cap_out, 2),
@@ -127,13 +113,13 @@ class AccountingEngine:
         }
 
     @staticmethod
-    def get_categories(owner_id: str, period: str = "month") -> list[dict]:
+    def get_categories(owner_id: str, days: int = 30) -> list[dict]:
         now = datetime.now(timezone.utc)
-        start = (now - timedelta(days=30)).isoformat()
+        start = (now - timedelta(days=days)).isoformat()
         end = now.isoformat()
 
         txns = WalletService.get_transactions(
-            owner_id, start_date=start, end_date=end, limit=200
+            owner_id, start_date=start, end_date=end, limit=500
         )
         txns = [t for t in txns if t.get("category") != "topup"]
 
