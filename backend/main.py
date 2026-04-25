@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from dynamo import create_tables
 from routers import auth, wallet, transactions, accounting, scoring, report, chat
+from services.data_simulator import seed_personas
 
 
 @asynccontextmanager
@@ -13,6 +14,7 @@ async def lifespan(app: FastAPI):
     # Startup: create DynamoDB tables
     try:
         create_tables()
+        seed_personas()  # Seed demo accounts
         print("DynamoDB tables ready.")
     except Exception as e:
         print(f"Warning: Could not create DynamoDB tables: {e}")

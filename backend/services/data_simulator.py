@@ -72,9 +72,16 @@ PERSONAS = [
 
 
 def seed_personas():
-    """Create demo personas with realistic transaction histories."""
+    """Create demo personas with realistic transaction histories (idempotent)."""
     owners_table = get_table(TABLE_OWNERS)
     txn_table = get_table(TABLE_TRANSACTIONS)
+
+    # Check if any demo accounts already exist
+    for persona in PERSONAS:
+        response = owners_table.get_item(Key={"phone": persona["phone"]})
+        if "Item" in response:
+            print("Demo accounts already seeded. Skipping.")
+            return
 
     for persona in PERSONAS:
         owner_id = str(uuid4())

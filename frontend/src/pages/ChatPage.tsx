@@ -31,7 +31,9 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const history = newMessages.slice(1).map((m) => ({
+      // Send only prior conversation turns (exclude current user msg + initial greeting)
+      // The backend appends the current user_message separately
+      const history = newMessages.slice(1, -1).map((m) => ({
         role: m.role,
         content: m.content,
       }));

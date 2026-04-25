@@ -1,4 +1,5 @@
 import io
+import re
 from datetime import datetime
 
 from reportlab.lib import colors
@@ -121,12 +122,11 @@ def generate_pdf_report(
         line = line.strip()
         if not line:
             elements.append(Spacer(1, 4))
-        elif line.startswith("**") and line.endswith("**"):
-            elements.append(Paragraph(line.replace("**", "<b>").replace("**", "</b>"), h2_style))
+        elif line.startswith("**") and line.endswith("**") and line.count("**") == 2:
+            # Section header: **Executive Summary**
+            elements.append(Paragraph(f"<b>{line[2:-2]}</b>", h2_style))
         else:
-            clean = line.replace("**", "<b>").rstrip("**") 
-            if clean.count("<b>") > clean.count("</b>"):
-                clean += "</b>"
+            clean = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", line)
             elements.append(Paragraph(clean, body_style))
 
     elements.append(Spacer(1, 20))

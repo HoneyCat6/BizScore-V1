@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,17 @@ from schemas.models import ScoreResult, ScoreComponent
 from dynamo import get_table, TABLE_SCORES, TABLE_OWNERS
 
 router = APIRouter(prefix="/api/score", tags=["score"])
+
+
+def _convert_floats_to_decimal(obj):
+    """Recursively convert all float values in a nested dict/list to Decimal."""
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    if isinstance(obj, dict):
+        return {k: _convert_floats_to_decimal(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_convert_floats_to_decimal(item) for item in obj]
+    return obj
 
 
 def _get_owner_info(owner_id: str) -> dict:
@@ -41,7 +53,7 @@ def calculate(owner_id: str = Depends(get_current_owner_id)):
 
     table = get_table(TABLE_SCORES)
     table.put_item(
-        Item={
+        Item=_convert_floats_to_decimal({
             "owner_id": owner_id,
             "generated_at": now,
             "score_id": score_id,
@@ -50,7 +62,7 @@ def calculate(owner_id: str = Depends(get_current_owner_id)):
             "components": score_data["components"],
             "explanation": explanation,
             "data_snapshot": score_data.get("data_snapshot", {}),
-        }
+        })
     )
 
     return ScoreResult(
@@ -99,12 +111,14 @@ def get_history(owner_id: str = Depends(get_current_owner_id)):
         Limit=20,
     )
     items = resp.get("Items", [])
-    return [
-        {
-            "score_id": i["score_id"],
-            "total_score": int(i["total_score"]),
-            "tier": i.get("tier", ""),
-            "generated_at": i["generated_at"],
-        }
-        for i in items
-    ]
+    return {
+        "scores": [
+            {
+                "score_id": i["score_id"],
+                "total_score": int(i["total_score"]),
+                "tier": i.get("tier", ""),
+                "generated_at": i["generated_at"],
+            }
+            for i in items
+        ]
+    }

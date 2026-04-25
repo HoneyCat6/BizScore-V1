@@ -1,3 +1,5 @@
+import traceback
+
 from services.bedrock_client import invoke_claude
 
 
@@ -35,7 +37,9 @@ def chat(message: str, conversation_history: list[dict], context: str = "") -> s
             max_tokens=300,
             conversation_history=conversation_history,
         )
-    except Exception:
+    except Exception as e:
+        print(f"Chat error: {e}")
+        traceback.print_exc()
         return (
             "I'm having trouble connecting right now. "
             "In the meantime, here are some tips: "

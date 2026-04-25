@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Award, RefreshCw, FileText, ChevronRight } from 'lucide-react';
+import { Award, FileText, ChevronRight } from 'lucide-react';
 import api from '../lib/api';
 import { tierColor } from '../lib/types';
 import type { ScoreResult } from '../lib/types';
@@ -160,14 +160,6 @@ export default function ScorePage() {
 
           {/* Actions */}
           <div className="space-y-3">
-            <button
-              onClick={calculateScore}
-              disabled={calculating}
-              className="w-full flex items-center justify-center gap-2 bg-primary-500 text-white py-3 rounded-xl font-semibold hover:bg-primary-600 disabled:opacity-50"
-            >
-              {calculating ? <Spinner /> : <RefreshCw size={18} />}
-              Recalculate Score
-            </button>
             <button
               onClick={generateReport}
               disabled={generating}
