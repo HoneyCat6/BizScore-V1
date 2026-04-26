@@ -2,6 +2,14 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install system dependencies required by reportlab (fonts) and Pillow (image libs)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libfreetype6 \
+    libpng-dev \
+    libjpeg-dev \
+    fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
