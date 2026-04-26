@@ -53,7 +53,7 @@ def generate_report(owner_id: str = Depends(get_current_owner_id)):
 
         score_item = items[0]
         owner_info = _get_owner_info(owner_id)
-        pnl = AccountingEngine.get_pnl(owner_id, "month")
+        pnl = AccountingEngine.get_pnl(owner_id, 30)
 
         # Build score_data from stored item, converting DynamoDB Decimals to native types
         score_data = {
